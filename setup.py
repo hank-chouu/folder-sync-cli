@@ -1,15 +1,15 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 setup(
     name='stat-folder',
     version='v1.0',
-    packages=find_packages(),
     install_requires=[
         'click',
     ],
+    python_requires=">=3.10",
     entry_points={
         'console_scripts': [
-            'stat-folder = cli:main',
+            'stat-folder = main:cli',
         ],
     },
 )
