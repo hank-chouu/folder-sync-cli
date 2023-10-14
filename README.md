@@ -2,7 +2,7 @@
 
 To prevent me from using the wrong rclone command.
 
-## Global installation
+## Global Installation
 
 ```
 git clone https://github.com/hank-chouu/stat-folder-cli.git

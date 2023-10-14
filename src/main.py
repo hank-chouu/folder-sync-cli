@@ -115,9 +115,7 @@ def config(set_local, set_remote):
 
 @click.command()
 @click.option("--use-copy", default=False, help="Use rclone copy instead of sync.")
-@click.option(
-    "--fast", default=False, help="Do not check if local/remote paths are valid"
-)
+@click.option("--fast", default=False, help="Do not check if local/remote paths are valid")
 def pull(use_copy, fast):
     """Pull from remote folder."""
     if not is_rclone_exists():
@@ -138,9 +136,7 @@ def pull(use_copy, fast):
 
 @click.command()
 @click.option("--use-copy", default=False, help="Use rclone copy instead of sync.")
-@click.option(
-    "--fast", default=False, help="Do not check if local/remote paths are valid"
-)
+@click.option("--fast", default=False, help="Do not check if local/remote paths are valid")
 def push(use_copy, fast):
     """Push local to remote."""
     if not is_rclone_exists():
