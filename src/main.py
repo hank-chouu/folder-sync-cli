@@ -1,8 +1,9 @@
-import click
-import re
 import os
+import re
 import subprocess
 from configparser import ConfigParser
+
+import click
 
 config_object = ConfigParser()
 configfile_path = os.path.abspath(os.path.dirname(__file__)) + "/config.ini"
@@ -29,27 +30,26 @@ def is_rclone_exists():
 
 
 def is_remote_valid(remote_dir):
-    pattern = r"^([a-zA-Z0-9_-]+):?([/a-zA-Z0-9_-]+/)+$"
     # not a valid dir
+    pattern = r"^([a-zA-Z0-9_-]+):?([/a-zA-Z0-9_-]+/)+$"
     match_ = re.search(pattern, remote_dir)
     if not match_:
         return False
+    
     # not a valid drive
-    stdout = subprocess.run(
-        ["rclone", "listremotes"], capture_output=True, text=True
-    ).stdout
-    listremotes = stdout.split("\n")
+    result = subprocess.run(["rclone", "listremotes"], capture_output=True, text=True)
+    listremotes = result.stdout.split("\n")
     remote = match_[1] + ":"
     if remote not in listremotes:
         return False
+    
     # not a valid path
-    stdout = subprocess.run(
+    result = subprocess.run(
         ["rclone", "lsf", "--dirs-only", remote], capture_output=True, text=True
-    ).stdout
-    folders = stdout.split("\n")
+    )
+    folders = result.stdout.split("\n")
     if match_[2] not in folders:
         return False
-
     return True
 
 
@@ -79,7 +79,7 @@ def cli():
 
 @click.command()
 @click.option("--set-local", type=str, help="Configure local folder.")
-@click.option("--set-remote", type=str, help="configure reomte folder.")
+@click.option("--set-remote", type=str, help="Configure reomte folder.")
 def config(set_local, set_remote):
     """Show or configure local and reomte paths."""
     if not is_rclone_exists():
@@ -96,7 +96,7 @@ def config(set_local, set_remote):
 
     if set_local is not None:
         if not is_local_valid(set_local):
-            click.echo("Error: local dir is not valid.")
+            click.echo("Error: local path is not valid.")
             raise click.exceptions.Exit(code=1)
         config_object.set("DIR_PATH", "local", set_local)
         with open(configfile_path, "w") as configfile:
@@ -105,7 +105,7 @@ def config(set_local, set_remote):
 
     if set_remote is not None:
         if not is_remote_valid(set_remote):
-            click.echo("Error: remote dir is not valid.")
+            click.echo("Error: remote path is not valid.")
             raise click.exceptions.Exit(code=1)
         config_object.set("DIR_PATH", "remote", set_remote)
         with open(configfile_path, "w") as configfile:
@@ -114,8 +114,8 @@ def config(set_local, set_remote):
 
 
 @click.command()
-@click.option("--use-copy", default=False, help="Use rclone copy instead of sync.")
-@click.option("--fast", default=False, help="Do not check if local/remote paths are valid")
+@click.option("--use-copy", is_flag=True, help="Use rclone copy instead of sync.")
+@click.option("--fast", is_flag=True, help="Skip path validations.")
 def pull(use_copy, fast):
     """Pull from remote folder."""
     if not is_rclone_exists():
@@ -130,13 +130,21 @@ def pull(use_copy, fast):
     remote = config_object.get("DIR_PATH", "remote")
     if not fast:
         validation(local, remote)
-    subprocess.run([program, cmd, remote, local])
-    click.echo("Pull completed.")
+    try:
+        result = subprocess.run(
+            [program, cmd, remote, local], capture_output=True, text=True
+        )
+        if not result.stderr:
+            click.echo("Pull completed.")
+        else:
+            click.echo(result.stderr.strip("\n"))
+    except subprocess.CalledProcessError as e:
+        click.echo(e)
 
 
 @click.command()
-@click.option("--use-copy", default=False, help="Use rclone copy instead of sync.")
-@click.option("--fast", default=False, help="Do not check if local/remote paths are valid")
+@click.option("--use-copy", is_flag=True, help="Use rclone copy instead of sync.")
+@click.option("--fast", is_flag=True, help="Skip path validations.")
 def push(use_copy, fast):
     """Push local to remote."""
     if not is_rclone_exists():
@@ -152,8 +160,16 @@ def push(use_copy, fast):
     remote = dirs.get("remote")
     if not fast:
         validation(local, remote)
-    subprocess.run([program, cmd, local, remote])
-    click.echo("Push completed.")
+    try:
+        result = subprocess.run(
+            [program, cmd, local, remote], capture_output=True, text=True
+        )
+        if not result.stderr:
+            click.echo("Push completed.")
+        else:
+            click.echo(result.stderr.strip("\n"))
+    except subprocess.CalledProcessError as e:
+        click.echo(e)
 
 
 cli.add_command(config)
