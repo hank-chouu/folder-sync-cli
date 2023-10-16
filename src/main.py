@@ -35,14 +35,14 @@ def is_remote_valid(remote_dir):
     match_ = re.search(pattern, remote_dir)
     if not match_:
         return False
-    
+
     # not a valid drive
     result = subprocess.run(["rclone", "listremotes"], capture_output=True, text=True)
     listremotes = result.stdout.split("\n")
     remote = match_[1] + ":"
     if remote not in listremotes:
         return False
-    
+
     # not a valid path
     result = subprocess.run(
         ["rclone", "lsf", "--dirs-only", remote], capture_output=True, text=True
@@ -129,10 +129,12 @@ def pull(use_copy, fast):
     local = config_object.get("DIR_PATH", "local")
     remote = config_object.get("DIR_PATH", "remote")
     if not fast:
+        click.echo("Validating config files...")
         validation(local, remote)
     try:
+        click.echo("Pull started.")
         result = subprocess.run(
-            [program, cmd, remote, local], capture_output=True, text=True
+            [program, cmd, remote, local, "-P"], stderr=subprocess.PIPE, text=True
         )
         if not result.stderr:
             click.echo("Pull completed.")
@@ -159,10 +161,11 @@ def push(use_copy, fast):
     local = dirs.get("local")
     remote = dirs.get("remote")
     if not fast:
+        click.echo("Validating config files...")
         validation(local, remote)
     try:
         result = subprocess.run(
-            [program, cmd, local, remote], capture_output=True, text=True
+            [program, cmd, local, remote, "-P"], stderr=subprocess.PIPE, text=True
         )
         if not result.stderr:
             click.echo("Push completed.")
