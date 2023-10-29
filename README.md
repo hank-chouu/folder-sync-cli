@@ -1,11 +1,4 @@
-# stat-folder-cli
+# folder-sync-cli
 
-To prevent me from using the wrong rclone command.
+Use simple push/pull commands to perform rclone syncing commands.
 
-## Install this tool system-wide
-
-```
-git clone https://github.com/hank-chouu/stat-folder-cli.git
-cd stat-folder-cli/
-python -m pip install .
-```
