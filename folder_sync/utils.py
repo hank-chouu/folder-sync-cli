@@ -70,7 +70,7 @@ def default_name(local_folder):
 
 def validation(local_folder, remote_full):
 
-    click.secho("\nValidating pair configuration...", fg="cyan")
+    click.secho("Validating pair configuration...", fg="cyan")
     if not local_folder:
         click.secho("Error: local is not configured.", fg="red", bold=True)
         raise click.exceptions.Exit(code=1)

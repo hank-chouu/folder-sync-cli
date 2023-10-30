@@ -114,8 +114,8 @@ def new():
     with open(pairs_path, "w") as f:
         pairs.write(f)
 
-    click.secho(f"\nConfiguration succeeded!", fg="green", bold=True)
-    click.echo("Now you can run", nl=False)
+    click.secho(f"configuration succeeded!", fg="green", bold=True)
+    click.echo("\nNow you can run", nl=False)
     click.secho(f" folder-sync pull {name}", fg="cyan", nl=False)
     click.echo(" to sync local from remote, or run", nl=False)
     click.secho(f" folder-sync push {name}", fg="cyan", nl=False)
