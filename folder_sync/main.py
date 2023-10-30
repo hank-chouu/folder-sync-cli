@@ -157,7 +157,7 @@ def pull(name, use_copy, fast):
         else:
             click.echo(result.stderr.strip("\n"))
     except subprocess.CalledProcessError as e:
-        click.echo(e)
+        click.secho(e, fg="red", bold=True)
 
 
 @click.command()
@@ -194,12 +194,31 @@ def push(name, use_copy, fast):
         else:
             click.echo(result.stderr.strip("\n"))
     except subprocess.CalledProcessError as e:
-        click.echo(e)
+        click.secho(e, fg="red", bold=True)
+
+
+
+@click.command()
+@click.argument("names", nargs=-1, type=str)
+@click.option("--all", "show_all", is_flag=True, default=False)
+def info(names, show_all):
+    if not names and show_all is False:
+        click.secho(
+            "You must provide pair name(s) or use --all to show all configurations.", fg="cyan"
+        )
+        raise click.exceptions.Exit(code=1)
+    elif names and show_all is True:
+        click.secho(
+            "You should either provide pair name(s) or use --all.", fg="cyan"
+        )
+        raise click.exceptions.Exit(code=1)
+    
 
 
 cli.add_command(new)
 cli.add_command(pull)
 cli.add_command(push)
+cli.add_command(info)
 
 
 if __name__ == "__main__":
