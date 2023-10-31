@@ -4,11 +4,11 @@ with open("README.md") as f:
     long_description = f.read()
 
 setup(
-    name='folder-sync-cli',
-    version='1.0.0',
+    name="folder-sync-cli",
+    version="1.0.0",
     packages=find_packages(),
     package_data={"": ["*.ini"]},
-    install_requires=["click"], 
+    install_requires=["click"],
     description="A CLI tool to simplify rclone sync.",
     long_description=long_description,
     long_description_content_type="text/markdown",

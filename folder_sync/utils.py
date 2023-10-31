@@ -1,13 +1,16 @@
 import os
 import subprocess
+from configparser import ConfigParser
 
 import click
 
 
 def get_remotes() -> list:
-    return subprocess.run(
-        ["rclone", "listremotes"], capture_output=True, text=True
-    ).stdout.strip("\n").split("\n")
+    return (
+        subprocess.run(["rclone", "listremotes"], capture_output=True, text=True)
+        .stdout.strip("\n")
+        .split("\n")
+    )
 
 
 def show_all_remotes(all_remotes):
@@ -69,27 +72,33 @@ def default_name(local_folder):
 
 
 def validation(local_folder, remote_full):
-
     click.secho("Validating pair configuration...", fg="cyan")
     if not local_folder:
-        click.secho("Error: local is not configured.", fg="red", bold=True)
+        click.secho("error: local is not configured.", fg="red", bold=True)
         raise click.exceptions.Exit(code=1)
     if not remote_full:
-        click.secho("Error: reomte is not configured.", fg="red", bold=True)
+        click.secho("error: reomte is not configured.", fg="red", bold=True)
         raise click.exceptions.Exit(code=1)
     if not is_local_folder_valid(local_folder):
-        click.secho(f"Error: local folder {local_folder} is not valid.", fg="red", bold=True)
+        click.secho(f"error: local folder {local_folder} is not valid.", fg="red", bold=True)
         raise click.exceptions.Exit(code=1)
 
     remote = remote_full.split(":")[0] + ":"
     remote_folder = remote_full.split(":")[1]
 
     if not is_remote_valid(remote):
-        click.secho(
-            f"Error: remote stroage {remote} is not valid.", fg="red", bold=True
-        )
+        click.secho(f"error: remote stroage {remote} is not valid.", fg="red", bold=True)
         raise click.exceptions.Exit(code=1)
 
     if not is_remote_folder_valid(remote, remote_folder):
-        click.secho(f"Error: remote folder {remote_folder} is not valid.", fg="red", bold=True)
+        click.secho(f"error: remote folder {remote_folder} is not valid.", fg="red", bold=True)
         raise click.exceptions.Exit(code=1)
+
+
+def print_pair(pair_name, pairs: ConfigParser):
+    click.secho("\n:: Pair name", fg="cyan", nl=False)
+    click.echo(f": {pair_name}")
+    click.secho(":: Local", fg="cyan", nl=False)
+    click.echo(f": {pairs[pair_name]['local']}")
+    click.secho(":: Remote", fg="cyan", nl=False)
+    click.echo(f": {pairs[pair_name]['remote']}\n")

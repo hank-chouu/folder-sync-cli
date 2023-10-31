@@ -16,6 +16,7 @@ from folder_sync.utils import (
     is_remote_folder_valid,
     show_all_remotes,
     validation,
+    print_pair,
 )
 
 pairs = ConfigParser()
@@ -35,7 +36,7 @@ def cli():
 def new():
     if not is_cmd_valid("rclone"):
         click.secho(
-            "Error: you need to first install rclone on this machine.", fg="red", bold=True
+            "error: you need to first install rclone on this machine.", fg="red", bold=True
         )
         raise click.exceptions.Exit(code=1)
     click.echo("\n::: Making a new local/remote pair :::\n")
@@ -115,11 +116,11 @@ def new():
         pairs.write(f)
 
     click.secho(f"configuration succeeded!", fg="green", bold=True)
-    click.echo("\nNow you can run", nl=False)
-    click.secho(f" folder-sync pull {name}", fg="cyan", nl=False)
-    click.echo(" to sync local from remote, or run", nl=False)
-    click.secho(f" folder-sync push {name}", fg="cyan", nl=False)
-    click.echo(" to sync remote from local.")
+    click.secho("\nNow you can run", fg="cyan", nl=False)
+    click.echo(f" folder-sync pull {name}", nl=False)
+    click.secho(" to sync local from remote, or run", fg="cyan", nl=False)
+    click.echo(f" folder-sync push {name}", nl=False)
+    click.secho(" to sync remote from local.", fg="cyan")
 
 
 @click.command()
@@ -131,7 +132,7 @@ def pull(name, use_copy, fast):
 
     if not is_cmd_valid("rclone"):
         click.secho(
-            "Error: you need to first install rclone on this machine.", fg="red", bold=True
+            "error: you need to first install rclone on this machine.", fg="red", bold=True
         )
         raise click.exceptions.Exit(code=1)
 
@@ -168,7 +169,7 @@ def push(name, use_copy, fast):
     """Push local to remote."""
     if not is_cmd_valid("rclone"):
         click.secho(
-            "Error: you need to first install rclone on this machine.", fg="red", bold=True
+            "error: you need to first install rclone on this machine.", fg="red", bold=True
         )
         raise click.exceptions.Exit(code=1)
 
@@ -197,28 +198,75 @@ def push(name, use_copy, fast):
         click.secho(e, fg="red", bold=True)
 
 
+@click.command()
+@click.argument("name", nargs=-1, type=str)
+@click.option("--all", "show_all", is_flag=True, default=False)
+def info(name, show_all):
+    if not name and show_all is False:
+        click.secho(
+            "You must provide a pair name or use --all to show all pair infos.", fg="cyan"
+        )
+        raise click.exceptions.Exit(code=1)
+    elif name and show_all is True:
+        click.secho("You should either provide a pair name or use --all.", fg="cyan")
+        raise click.exceptions.Exit(code=1)
+    elif len(name) > 1:
+        click.secho("You should provide one pair name at a time.", fg="cyan")
+        raise click.exceptions.Exit(code=1)
+    elif show_all is True:
+        for pair in pairs.sections():
+            print_pair(pair, pairs)
+    elif len(name) == 1:
+        if name[0] not in pairs.sections():
+            click.secho("error: pair not found.", fg="red", bold=True)
+        else:
+            print_pair(name[0], pairs)
+
 
 @click.command()
-@click.argument("names", nargs=-1, type=str)
-@click.option("--all", "show_all", is_flag=True, default=False)
-def info(names, show_all):
-    if not names and show_all is False:
-        click.secho(
-            "You must provide pair name(s) or use --all to show all configurations.", fg="cyan"
-        )
+@click.argument("name", nargs=-1, type=str)
+@click.option("--all", "remove_all", is_flag=True, default=False)
+def remove(name, remove_all):
+    if not name and remove_all is False:
+        click.secho("You must provide a pair name or use --all to remove all pairs.", fg="cyan")
         raise click.exceptions.Exit(code=1)
-    elif names and show_all is True:
-        click.secho(
-            "You should either provide pair name(s) or use --all.", fg="cyan"
-        )
+    elif name and remove_all is True:
+        click.secho("You should either provide a pair name or use --all.", fg="cyan")
         raise click.exceptions.Exit(code=1)
-    
+    elif len(name) > 1:
+        click.secho("You should provide one pair name at a time.", fg="cyan")
+        raise click.exceptions.Exit(code=1)
+    elif remove_all is True:
+        if click.confirm(
+            click.style("This will removed all configured pairs. Proceed?", fg="cyan")
+        ):
+            if len(pairs.sections()) == 0:
+                click.echo("There is no pair to be removed.")
+            else:
+                for pair in pairs.sections():
+                    pairs.remove_section(pair)
+                    with open(pairs_path, "w") as f:
+                        pairs.write(f)
+                    click.secho("Sync pair ", fg="cyan", nl=False)
+                    click.echo(f"{name[0]} ", nl=False)
+                    click.secho("removed.", fg="cyan")
+    elif len(name) == 1:
+        if name[0] not in pairs.sections():
+            click.secho("error: pair not found.", fg="red", bold=True)
+        else:
+            pairs.remove_section(name[0])
+            with open(pairs_path, "w") as f:
+                pairs.write(f)
+            click.secho("Sync pair ", fg="cyan", nl=False)
+            click.echo(f"{name[0]} ", nl=False)
+            click.secho("removed.", fg="cyan")
 
 
 cli.add_command(new)
 cli.add_command(pull)
 cli.add_command(push)
 cli.add_command(info)
+cli.add_command(remove)
 
 
 if __name__ == "__main__":
