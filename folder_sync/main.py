@@ -287,7 +287,7 @@ def remove(name, remove_all):
                     with open(pairs_path, "w") as f:
                         pairs.write(f)
                     click.secho("Sync pair ", fg="cyan", nl=False)
-                    click.echo(f"{name[0]} ", nl=False)
+                    click.echo(f"{pair} ", nl=False)
                     click.secho("removed.", fg="cyan")
     elif len(name) == 1:
         if name[0] not in pairs.sections():
