@@ -103,13 +103,12 @@ def print_pair(pair_name, pairs: ConfigParser):
     click.secho(":: Remote", fg="cyan", nl=False)
     click.echo(f": {pairs[pair_name]['remote']}")
     click.secho(":: Exclude hidden files", fg="cyan", nl=False)
-    if pairs[pair_name]['exclude_hidden_files'] == "y":        
+    if pairs[pair_name]["exclude_hidden_files"] == "y":
         click.echo(": True")
     else:
         click.echo(": False")
     click.secho(":: Exclude hidden folders", fg="cyan", nl=False)
-    if pairs[pair_name]['exclude_hidden_folders'] == "y":        
+    if pairs[pair_name]["exclude_hidden_folders"] == "y":
         click.echo(": True\n")
     else:
         click.echo(": False\n")
-

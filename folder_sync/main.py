@@ -34,6 +34,7 @@ def cli():
 
 @click.command()
 def new():
+    """Create a new local/remote pair."""
     if not is_cmd_valid("rclone"):
         click.secho(
             "error: you need to first install rclone on this machine.", fg="red", bold=True
@@ -238,6 +239,7 @@ def push(name, use_copy, fast):
 @click.argument("name", nargs=-1, type=str)
 @click.option("--all", "show_all", is_flag=True, default=False)
 def info(name, show_all):
+    """Show info for a pair or all pairs"""
     if not name and show_all is False:
         click.secho(
             "You must provide a pair name or use --all to show all pair infos.", fg="cyan"
@@ -263,6 +265,7 @@ def info(name, show_all):
 @click.argument("name", nargs=-1, type=str)
 @click.option("--all", "remove_all", is_flag=True, default=False)
 def remove(name, remove_all):
+    """Remove a pair or all pairs."""
     if not name and remove_all is False:
         click.secho("You must provide a pair name or use --all to remove all pairs.", fg="cyan")
         raise click.exceptions.Exit(code=1)
