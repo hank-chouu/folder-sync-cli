@@ -5,7 +5,7 @@ with open("README.md") as f:
 
 setup(
     name="folder-sync-cli",
-    version="1.1.1",
+    version="1.1.2",
     packages=find_packages(),
     package_data={"": ["*.ini"]},
     install_requires=["click"],

@@ -252,6 +252,8 @@ def info(name, show_all):
         click.secho("You should provide one pair name at a time.", fg="cyan")
         raise click.exceptions.Exit(code=1)
     elif show_all is True:
+        if len(pairs.sections()) == 0:
+            click.echo("There is no pair to show.")
         for pair in pairs.sections():
             print_pair(pair, pairs)
     elif len(name) == 1:
