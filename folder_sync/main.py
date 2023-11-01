@@ -108,14 +108,37 @@ def new():
             click.style("\nName this pair", fg="cyan"), default=default_name(local)
         )
 
+    # exclude hidden files
+    exclude_hidden_files = click.prompt(
+        click.style("\nExclude hidden files? [y/N]", fg="cyan"), default="y"
+    ).lower()
+    while exclude_hidden_files not in ["y", "n"]:
+        click.secho(f"Invalid input.", fg="red", bold=True)
+        exclude_hidden_files = click.prompt(
+            click.style("\nExclude hidden files? [y/N]", fg="cyan"), default="y"
+        ).lower()
+
+    # exclude hidden folders
+    exclude_hidden_folders = click.prompt(
+        click.style("\nExclude hidden folders? [y/N]", fg="cyan"), default="y"
+    ).lower()
+    while exclude_hidden_folders not in ["y", "n"]:
+        click.secho(f"Invalid input.", fg="red", bold=True)
+        exclude_hidden_folders = click.prompt(
+            click.style("\nExclude hidden files? [y/N]", fg="cyan"), default="y"
+        ).lower()
+
     # write to pairs.ini
     pairs[name] = {}
     pairs[name]["local"] = local
     pairs[name]["remote"] = remote + remote_folder
+    pairs[name]["exclude_hidden_files"] = exclude_hidden_files
+    pairs[name]["exclude_hidden_folders"] = exclude_hidden_folders
+
     with open(pairs_path, "w") as f:
         pairs.write(f)
 
-    click.secho(f"configuration succeeded!", fg="green", bold=True)
+    click.secho(f"Configuration succeeded!", fg="green", bold=True)
     click.secho("\nNow you can run", fg="cyan", nl=False)
     click.echo(f" folder-sync pull {name}", nl=False)
     click.secho(" to sync local from remote, or run", fg="cyan", nl=False)
@@ -146,13 +169,19 @@ def pull(name, use_copy, fast):
         cmd = "copy"
     local_folder = pairs.get(name, "local")
     remote_full = pairs.get(name, "remote")
+    full_cmd = [program, cmd, remote_full, local_folder, "-P"]
+
+    if pairs.get(name, "exclude_hidden_files") == "y":
+        full_cmd.extend(["--exclude", "'.*'"])
+
+    if pairs.get(name, "exclude_hidden_folders") == "y":
+        full_cmd.extend(["--exclude", "'.*/**'"])
+
     if not fast:
         validation(local_folder, remote_full)
     try:
         click.echo("Pull started.")
-        result = subprocess.run(
-            [program, cmd, remote_full, local_folder, "-P"], stderr=subprocess.PIPE, text=True
-        )
+        result = subprocess.run(full_cmd, stderr=subprocess.PIPE, text=True)
         if not result.stderr:
             click.echo("Pull completed.")
         else:
@@ -183,13 +212,20 @@ def push(name, use_copy, fast):
         cmd = "copy"
     local_folder = pairs.get(name, "local")
     remote_full = pairs.get(name, "remote")
+
+    full_cmd = [program, cmd, local_folder, remote_full, "-P"]
+
+    if pairs.get(name, "exclude_hidden_files") == "y":
+        full_cmd.extend(["--exclude", "'.*'"])
+
+    if pairs.get(name, "exclude_hidden_folders") == "y":
+        full_cmd.extend(["--exclude", "'.*/**'"])
+
     if not fast:
         validation(local_folder, remote_full)
     try:
         click.echo("Push Started.")
-        result = subprocess.run(
-            [program, cmd, local_folder, remote_full, "-P"], stderr=subprocess.PIPE, text=True
-        )
+        result = subprocess.run(full_cmd, stderr=subprocess.PIPE, text=True)
         if not result.stderr:
             click.echo("Push completed.")
         else:
