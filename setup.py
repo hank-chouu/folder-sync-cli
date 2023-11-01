@@ -5,9 +5,8 @@ with open("README.md") as f:
 
 setup(
     name="folder-sync-cli",
-    version="1.1.2",
+    version="1.1.4",
     packages=find_packages(),
-    package_data={"": ["*.ini"]},
     install_requires=["click"],
     description="A CLI tool to simplify rclone sync.",
     long_description=long_description,
