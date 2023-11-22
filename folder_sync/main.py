@@ -74,6 +74,7 @@ def new():
                 "\nEnter the remote folder, or leave blank to sync the whole remote stroage",
                 fg="cyan",
             ),
+            type=str,
             default="",
         )
     while not is_remote_folder_valid(remote, remote_folder):
@@ -150,8 +151,10 @@ def new():
 @click.command()
 @click.argument("name", type=str)
 @click.option("--use-copy", is_flag=True, help="Use rclone copy instead of sync.")
-@click.option("--fast", is_flag=True, help="Skip folder validations.")
-def pull(name, use_copy, fast):
+@click.option("--skip-val", is_flag=True, help="Skip folder validations.")
+@click.option("-s", "small_files", is_flag=True, help="Optimze for tranfer small files.")
+@click.option("-l", "large_files", is_flag=True, help="Optimze for tranfer large files.")
+def pull(name, use_copy, skip_val, small_files, large_files):
     """Pull from remote folder."""
 
     if not is_cmd_valid("rclone"):
@@ -164,6 +167,10 @@ def pull(name, use_copy, fast):
         click.secho(f"Invalid pair name. Please try again.", fg="red", bold=True)
         raise click.exceptions.Exit(code=1)
 
+    if small_files is True and large_files is True:
+        click.secho(f"Invalid usage. Pass either -s or -l", fg="red", bold=True)
+        raise click.exceptions.Exit(code=1)
+
     program = "rclone"
     cmd = "sync"
     if use_copy:
@@ -174,11 +181,15 @@ def pull(name, use_copy, fast):
 
     if pairs.get(name, "exclude_hidden_files") == "y":
         full_cmd.extend(["--exclude", "'.*'"])
-
     if pairs.get(name, "exclude_hidden_folders") == "y":
         full_cmd.extend(["--exclude", "'.*/**'"])
 
-    if not fast:
+    if small_files is True:
+        full_cmd.extend(["--checkers", "64", "--transfers", "32"])
+    elif large_files is True:
+        full_cmd.extend(["--transfers", "1"])
+
+    if not skip_val:
         validation(local_folder, remote_full)
     try:
         click.echo("Pull started.")
@@ -194,8 +205,10 @@ def pull(name, use_copy, fast):
 @click.command()
 @click.argument("name", type=str)
 @click.option("--use-copy", is_flag=True, help="Use rclone copy instead of sync.")
-@click.option("--fast", is_flag=True, help="Skip folder validations.")
-def push(name, use_copy, fast):
+@click.option("--skip-val", is_flag=True, help="Skip folder validations.")
+@click.option("-s", "small_files", is_flag=True, help="Optimze for tranfer small files.")
+@click.option("-l", "large_files", is_flag=True, help="Optimze for tranfer large files.")
+def push(name, use_copy, skip_val, small_files, large_files):
     """Push local to remote."""
     if not is_cmd_valid("rclone"):
         click.secho(
@@ -205,6 +218,10 @@ def push(name, use_copy, fast):
 
     if name not in pairs.sections():
         click.secho(f"Invalid pair name. Please try again.", fg="red", bold=True)
+        raise click.exceptions.Exit(code=1)
+
+    if small_files is True and large_files is True:
+        click.secho(f"Invalid usage. Pass either -s or -l", fg="red", bold=True)
         raise click.exceptions.Exit(code=1)
 
     program = "rclone"
@@ -218,11 +235,15 @@ def push(name, use_copy, fast):
 
     if pairs.get(name, "exclude_hidden_files") == "y":
         full_cmd.extend(["--exclude", "'.*'"])
-
     if pairs.get(name, "exclude_hidden_folders") == "y":
         full_cmd.extend(["--exclude", "'.*/**'"])
 
-    if not fast:
+    if small_files is True:
+        full_cmd.extend(["--checkers", "64", "--transfers", "32"])
+    elif large_files is True:
+        full_cmd.extend(["--transfers", "1"])
+
+    if not skip_val:
         validation(local_folder, remote_full)
     try:
         click.echo("Push Started.")
