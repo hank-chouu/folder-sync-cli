@@ -180,9 +180,9 @@ def pull(name, use_copy, skip_val, small_files, large_files):
     full_cmd = [program, cmd, remote_full, local_folder, "-P"]
 
     if pairs.get(name, "exclude_hidden_files") == "y":
-        full_cmd.extend(["--exclude", "'.*'"])
+        full_cmd.extend(["--exclude", "'**/.**'"])
     if pairs.get(name, "exclude_hidden_folders") == "y":
-        full_cmd.extend(["--exclude", "'.*/**'"])
+        full_cmd.extend(["--exclude", "'/.**'"])
 
     if small_files is True:
         full_cmd.extend(["--checkers", "64", "--transfers", "32"])
